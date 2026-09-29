@@ -25,12 +25,15 @@ body{padding-bottom:calc(72px + env(safe-area-inset-bottom))}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
 input,select,textarea{font:inherit;color:var(--fg);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--acc);border-color:transparent}
+input[type=date],input[type=number],input[type=text]{min-width:0;display:block;-webkit-appearance:none;appearance:none}
+input[type=date]{min-height:48px}
+.grid2>div,.grid3>div{min-width:0}
 h1{font-size:22px;margin:0 0 4px}
 h2{font-size:17px;margin:18px 0 8px;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.04em;font-size:12px}
 .wrap{padding:calc(14px + env(safe-area-inset-top)) 16px 16px;max-width:560px;margin:0 auto}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0}
 .row{display:flex;gap:10px;align-items:center}
-.grow{flex:1}
+.grow{flex:1;min-width:0}
 .mut{color:var(--mut)}.sm{font-size:13px}.xs{font-size:12px}.b{font-weight:700}
 .big{font-size:34px;font-weight:800;letter-spacing:-.02em}
 .btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:12px 16px;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:600;width:100%}
@@ -39,6 +42,9 @@ h2{font-size:17px;margin:18px 0 8px;color:var(--mut);font-weight:600;text-transf
 .btn.warn{background:transparent;border-color:var(--warn);color:var(--warn)}
 .btn.bad{background:transparent;border-color:var(--bad);color:var(--bad)}
 .btn.xl{min-height:72px;font-size:22px}
+.btn.tt{flex-direction:column;gap:2px;line-height:1.1}
+.btn.tt small{font-size:11px;font-weight:600;color:var(--mut);text-transform:none}
+.btn.tt.pri small{color:rgba(255,255,255,.85)}
 .btn.sm{min-height:40px;padding:6px 12px;font-size:14px;width:auto}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
@@ -90,13 +96,13 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .toast.show{opacity:1}
 .hide{display:none!important}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:40}
-.modal .box{background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));width:100%;max-width:560px}
-.exrow{display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
-.exrow input[type=text]{flex:1}
-.exrow input[type=number]{width:64px;text-align:center;padding:10px 4px}
+.modal .box{overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));width:100%;max-width:560px}
+.exrow{padding:10px 0;border-bottom:1px solid var(--line)}
+.exrow .ctl{display:flex;gap:8px;align-items:center;margin-top:8px}
+.exrow input[type=number]{width:60px;flex:0 0 60px;text-align:center;padding:10px 4px}
 .exrow .mini{width:40px;min-height:40px;border-radius:8px;background:var(--card2);border:1px solid var(--line);font-weight:700}
 label.chk2{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mut)}
-label.chk2 input{width:auto}
+label.chk2 input{width:20px;height:20px;padding:0;margin:0;flex:0 0 auto;-webkit-appearance:checkbox;appearance:checkbox}
 textarea{min-height:90px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
 .arrows{display:flex;gap:10px;margin:6px 0 2px}
 .arrows button{flex:1;min-height:44px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-weight:700}
@@ -174,6 +180,7 @@ function seed(){
   ];
   return {
     config:{quintaReferencia:'2026-09-17',pesoCorporalKg:116.5},
+    treinosDesc:{A:'Peito e tríceps',B:'Costas e bíceps',C:'Pernas'},
     treinos:T, sessoes, atual:null,
     cardio:[{id:uid(),data:'2026-09-21',modalidade:'esteira-corrida',tempoMin:25,distanciaKm:2.5,inclinacao:0,obs:''}],
     diario:{}
@@ -182,7 +189,9 @@ function seed(){
 
 /* ---------- state ---------- */
 let S=null;
-function load(){ try{const r=localStorage.getItem(KEY); if(r){S=JSON.parse(r);return;}}catch(e){} S=seed(); save(); }
+function load(){ try{const r=localStorage.getItem(KEY); if(r){S=JSON.parse(r);migrate();return;}}catch(e){} S=seed(); save(); }
+function migrate(){ let ch=false; if(!S.treinosDesc){S.treinosDesc={A:'Peito e tríceps',B:'Costas e bíceps',C:'Pernas'};ch=true;} if(ch)save(); }
+function tdesc(t){ return (S.treinosDesc&&S.treinosDesc[t])||''; }
 function save(){ try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){toast('Erro ao salvar');} }
 function uid(){ return Math.random().toString(36).slice(2,10)+Date.now().toString(36); }
 
@@ -245,7 +254,7 @@ function viewHoje(){
     <div class="mut sm">${fmtBR(t)} · ${DIAS[dn]} · D+${dn}</div>
     <div class="card">
       <button class="btn pri xl" id="start">Iniciar treino</button>
-      ${ult?`<div class="mut xs" style="margin-top:10px">Último: ${fmtBR(ult.data)} · <span class="pill ${ult.treino}">${ult.treino}</span> ${esc(ult.comQuem)} · ${fmtInt(vol(ult))} vol</div>`:''}
+      ${ult?`<div class="mut xs" style="margin-top:10px">Último: ${fmtBR(ult.data)} · <span class="pill ${ult.treino}">${ult.treino}</span> ${esc(tdesc(ult.treino))} · ${esc(ult.comQuem)} · ${fmtInt(vol(ult))} vol</div>`:''}
     </div>
     <h2>Diário do dia</h2>
     <div class="card">
@@ -284,7 +293,7 @@ function modalStart(){
   m.innerHTML=`<div class="box">
     <div class="row" style="margin-bottom:12px"><div class="grow"><div class="mut xs">Data do treino</div><input id="sd" type="date" value="${todayISO()}" max="${todayISO()}"></div></div>
     <div class="b" style="font-size:18px;margin-bottom:10px">Qual treino?</div>
-    <div class="grid3">${['A','B','C'].map(k=>`<button class="btn xl" data-t="${k}">${k}</button>`).join('')}</div>
+    <div class="grid3">${['A','B','C'].map(k=>`<button class="btn xl tt" data-t="${k}">${k}<small>${esc(tdesc(k))}</small></button>`).join('')}</div>
     <div class="b" style="font-size:18px;margin:16px 0 10px">Com quem?</div>
     <div class="grid2">${COMQUEM.map(c=>`<button class="btn" data-c="${esc(c)}">${esc(c)}</button>`).join('')}</div>
     <button class="btn" id="cancel" style="margin-top:14px">Cancelar</button>
@@ -542,19 +551,23 @@ function viewCfg(){
   return `<div class="wrap"><h1>Config</h1>
     <h2>Parâmetros</h2>
     <div class="card"><div class="grid2">
-      <div><div class="mut xs">Quinta de referência (aplicação)</div><input id="qr" type="date" value="${S.config.quintaReferencia}"></div>
+      <div><div class="mut xs">Quinta de referência</div><input id="qr" type="date" value="${S.config.quintaReferencia}"></div>
       <div><div class="mut xs">Peso corporal (kg)</div><input id="pc" type="number" inputmode="decimal" step="0.1" value="${S.config.pesoCorporalKg}"></div>
-    </div><div class="mut xs" style="margin-top:8px">D+N = (data − quinta de referência) mod 7. Peso usado na carga efetiva do gravitron.</div></div>
+    </div><div class="mut xs" style="margin-top:8px">Quinta = dia da aplicação. D+N = (data − quinta) mod 7. Peso usado na carga efetiva do gravitron.</div></div>
 
     <h2>Treinos</h2>
-    ${['A','B','C'].map(t=>`<div class="card"><div class="row"><span class="pill ${t}">Treino ${t}</span><div class="grow"></div><button class="btn sm" data-addex="${t}">+ exercício</button></div>
+    <div class="mut xs" style="margin:-4px 0 8px">Assistido = máquina com contrapeso (gravitron): carga = peso corporal − assistência.</div>
+    ${['A','B','C'].map(t=>`<div class="card">
+      <div class="row"><span class="pill ${t}">Treino ${t}</span><input type="text" data-tdesc="${t}" value="${esc(tdesc(t))}" placeholder="descrição (ex: Peito e tríceps)" style="flex:1;padding:8px 10px"><button class="btn sm" data-addex="${t}">+</button></div>
       ${S.treinos[t].map((e,i)=>`<div class="exrow" data-t="${t}" data-i="${i}">
-        <button class="mini" data-mv="-1" ${i===0?'disabled':''}>↑</button><button class="mini" data-mv="1" ${i===S.treinos[t].length-1?'disabled':''}>↓</button>
         <input type="text" data-f="nome" value="${esc(e.nome)}">
-        <input type="number" data-f="series" value="${e.series}" min="1" max="8" title="séries">
-        <button class="mini bad" data-rm>×</button>
-      </div>
-      <label class="chk2" style="padding:0 0 6px 4px"><input type="checkbox" data-t="${t}" data-i="${i}" data-f="assistido" ${e.assistido?'checked':''}> assistido (gravitron: carga = peso − assistência)</label>`).join('')}
+        <div class="ctl">
+          <button class="mini" data-mv="-1" ${i===0?'disabled':''}>↑</button><button class="mini" data-mv="1" ${i===S.treinos[t].length-1?'disabled':''}>↓</button>
+          <span class="mut xs">séries</span><input type="number" data-f="series" value="${e.series}" min="1" max="8">
+          <label class="chk2 grow" style="justify-content:flex-end"><input type="checkbox" data-t="${t}" data-i="${i}" data-f="assistido" ${e.assistido?'checked':''}> assistido</label>
+          <button class="mini bad" data-rm>×</button>
+        </div>
+      </div>`).join('')}
     </div>`).join('')}
 
     <h2>Dados</h2>
@@ -576,6 +589,7 @@ function viewCfg(){
 function bindCfg(){
   document.getElementById('qr').onchange=e=>{if(e.target.value){S.config.quintaReferencia=e.target.value;save();toast('Salvo');}};
   document.getElementById('pc').onchange=e=>{const v=parseFloat(String(e.target.value).replace(',','.'));if(v>0){S.config.pesoCorporalKg=v;save();toast('Salvo');}};
+  document.querySelectorAll('input[data-tdesc]').forEach(inp=>inp.onchange=()=>{S.treinosDesc[inp.dataset.tdesc]=inp.value.trim();save();toast('Salvo');});
   document.querySelectorAll('[data-addex]').forEach(b=>b.onclick=()=>{S.treinos[b.dataset.addex].push({nome:'Novo exercício',series:3,def:0});save();render();});
   document.querySelectorAll('.exrow').forEach(row=>{
     const t=row.dataset.t,i=Number(row.dataset.i),e=S.treinos[t][i];
