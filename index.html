@@ -282,6 +282,7 @@ function bindHoje(){
 function modalStart(){
   const m=document.createElement('div'); m.className='modal';
   m.innerHTML=`<div class="box">
+    <div class="row" style="margin-bottom:12px"><div class="grow"><div class="mut xs">Data do treino</div><input id="sd" type="date" value="${todayISO()}" max="${todayISO()}"></div></div>
     <div class="b" style="font-size:18px;margin-bottom:10px">Qual treino?</div>
     <div class="grid3">${['A','B','C'].map(k=>`<button class="btn xl" data-t="${k}">${k}</button>`).join('')}</div>
     <div class="b" style="font-size:18px;margin:16px 0 10px">Com quem?</div>
@@ -290,12 +291,13 @@ function modalStart(){
   </div>`;
   document.body.appendChild(m);
   let t=null,c=null;
-  const upd=()=>{ m.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('pri',b.dataset.t===t)); m.querySelectorAll('[data-c]').forEach(b=>b.classList.toggle('pri',b.dataset.c===c)); if(t&&c){m.remove();startSession(t,c);} };
+  const upd=()=>{ m.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('pri',b.dataset.t===t)); m.querySelectorAll('[data-c]').forEach(b=>b.classList.toggle('pri',b.dataset.c===c)); if(t&&c){const d=m.querySelector('#sd').value||todayISO();m.remove();startSession(t,c,d);} };
   m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{t=b.dataset.t;upd();});
   m.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{c=b.dataset.c;upd();});
   m.querySelector('#cancel').onclick=()=>m.remove();
 }
-function startSession(treino,comQuem){
+function startSession(treino,comQuem,data){
+  data=data||todayISO();
   const exs=S.treinos[treino]; const series=[];
   exs.forEach((e,i)=>{ for(let n=1;n<=e.series;n++){
     const l=lastSet(treino,e.nome,n);
@@ -305,7 +307,7 @@ function startSession(treino,comQuem){
     series.push({exercicio:e.nome,ordem:i+1,numeroSerie:n,carga,reps:l?l.reps:10,rir:l?l.rir:2,assistencia:assist,feita:false,
       last:l?{carga:l.carga,reps:l.reps,rir:l.rir,assistencia:l.assistencia}:null});
   }});
-  S.atual={id:uid(),data:todayISO(),treino,comQuem,obs:'',finalizada:false,interrompida:false,motivo:'',series,startedAt:Date.now()};
+  S.atual={id:uid(),data,treino,comQuem,obs:'',finalizada:false,interrompida:false,motivo:'',series,startedAt:Date.now()};
   EXI=0; save(); render();
 }
 
@@ -320,7 +322,7 @@ function viewSessao(){
   return `<div class="wrap" style="padding-top:0">
     <div class="sess-top">
       <div class="row">
-        <div class="grow"><span class="pill ${a.treino}">Treino ${a.treino}</span> <span class="pill">${esc(a.comQuem)}</span></div>
+        <div class="grow"><span class="pill ${a.treino}">Treino ${a.treino}</span> <span class="pill">${esc(a.comQuem)}</span>${a.data!==todayISO()?` <span class="pill warn">${fmtBR(a.data)}</span>`:''}</div>
         <div class="timer" id="timer">0:00</div>
         <button class="btn sm" id="tz">zerar</button>
       </div>

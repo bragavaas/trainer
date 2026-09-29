@@ -1,4 +1,4 @@
-const CACHE = 'treino-v1';
+const CACHE = 'treino-v2';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './sw.js'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
