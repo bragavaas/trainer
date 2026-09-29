@@ -4,10 +4,10 @@ PWA de registro de musculação. Offline, sem backend, dados em localStorage.
 
 ## Hospedar no GitHub Pages
 
-1. Crie um repositório (ex: `treino`) e suba estes 5 arquivos na raiz:
+1. Crie um repositório (ex: `trainer`) e suba estes 5 arquivos na raiz:
    `index.html`, `manifest.json`, `sw.js`, `icon.svg`, `README.md`
 2. Settings → Pages → Source: "Deploy from a branch" → branch `main`, pasta `/ (root)`
-3. Aguarde 1 a 2 min. A URL fica `https://SEU-USUARIO.github.io/treino/`
+3. Aguarde 1 a 2 min. A URL fica `https://bragavaas.github.io/trainer/`
 
 ## Instalar no iPhone
 
